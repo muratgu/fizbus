@@ -3,19 +3,39 @@
         <link rel="stylesheet" href="lib/leaflet.css"/>
      <script src="lib/leaflet.js"></script>
      <style>
-        #map { height: 600px; }
+        #map { 
+            height: 100%; width: 100%; 
+        }
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+            background-color: rgb(165, 209, 209);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
         .leaflet-tooltip.bus-label {
             background-color: transparent;
             border: transparent;
             box-shadow: none;
-            font-weight: bold;
+            font-weight: normal;
             font-size: 12px;
         }
     </style>     
     </head>
 <body>
-    <div id="map"></div>
+    <div id="map">
+    </div>
+    <div id="controls">
+        <input type="text" id="txtStopId"/>
+        <input type="button" id="btnGetBusLocations" value="Get Bus Locations" onclick="btnGetBusLocations_click()"/>
+    </div>
     <script type="text/javascript">
+        const MIN_ZOOM = 6;
+        const MAX_ZOOM = 18;
+
         var busIcon = L.icon({
             iconUrl: 'images/yellow-circle.png', 
             iconSize: [40, 40], 
@@ -28,13 +48,23 @@
                 delete bus.KoorX;
                 delete bus.KoorY;
             });
+            return data;
+        }
+
+        function btnGetBusLocations_click() {
+            var stopId = document.getElementById('txtStopId').value;
+            if (stopId == '') {
+                return;
+            } else {
+                getBusLocationsForStop(stopId);
+            }
         }
 
         function getBusLocationsForStop(stopId) {
             fetch('https://openapi.izmir.bel.tr/api/iztek/duragayaklasanotobusler/' + stopId)
                 .then(response => response.json())
+                .then(data => cleanUp(data))
                 .then(data => {
-                    cleanUp(data);
                     data.forEach(bus => {
                         var awayLabel = bus.KalanDurakSayisi == 0 ? 'arriving' : bus.KalanDurakSayisi + ' stops away';
                         var busNumber = "" + bus.HatNumarasi;
@@ -46,15 +76,35 @@
                 });
         }
         
-        var map = L.map('map').locate({setView: true, maxZoom: 16});
+        var map = L.map('map', {
+            minZoom: MIN_ZOOM,
+            maxZoom: MAX_ZOOM,
+            zoomControl: false
+        }); 
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
+            maxZoom: MAX_ZOOM,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
+        L.control.zoom({
+            position: 'bottomright'
+        }).addTo(map);
+
+        map.on('locationfound', (e) => {
+            var radius = e.accuracy / 2;
+            L.circle(e.latlng, radius).addTo(map);
+        });
+
+        map.on('locationerror', (e) => {
+            console.log(e);
+            alert(e.message);
+        });
+
+        map.locate({setView: true, maxZoom: MAX_ZOOM})
+
         map.on('load', () => {
-            getBusLocationsForStop(50031);
+            console.log('Map loaded');
         });
 
      </script>
