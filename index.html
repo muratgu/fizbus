@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="leaflet.css"/>
+     <script src="leaflet.js"></script>
+     <style>
+        #map { height: 600px; }
+        .leaflet-tooltip.bus-label {
+            background-color: transparent;
+            border: transparent;
+            box-shadow: none;
+            font-weight: bold;
+            font-size: 12px;
+        }
+    </style>     
+    </head>
+<body>
+    <div id="map"></div>
+    <script type="text/javascript">
+        var busIcon = L.icon({
+            iconUrl: 'images/yellow-circle.png', 
+            iconSize: [40, 40], 
+        });
+
+        function cleanUp(data) {
+            data.forEach(bus => {
+                bus.lat = bus.KoorX.replace(',', '.');
+                bus.lon = bus.KoorY.replace(',', '.');
+                delete bus.KoorX;
+                delete bus.KoorY;
+            });
+        }
+
+        function getBusLocationsForStop(stopId) {
+            fetch('https://openapi.izmir.bel.tr/api/iztek/duragayaklasanotobusler/' + stopId)
+                .then(response => response.json())
+                .then(data => {
+                    cleanUp(data);
+                    data.forEach(bus => {
+                        var awayLabel = bus.KalanDurakSayisi == 0 ? 'arriving' : bus.KalanDurakSayisi + ' stops away';
+                        var busNumber = "" + bus.HatNumarasi;
+                        L.marker([bus.lat, bus.lon], { icon:busIcon})
+                        .addTo(map)
+                        .bindTooltip(busNumber, {permanent: true, direction: 'center', className: "bus-label"})
+                        .bindPopup('[' + busNumber + '] ' + bus.HatAdi + ' ' + awayLabel);
+                    });
+                });
+        }
+        
+        var map = L.map('map').locate({setView: true, maxZoom: 16});
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        map.on('load', () => {
+            getBusLocationsForStop(50031);
+        });
+
+     </script>
+</body>
+</html>
