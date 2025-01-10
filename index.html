@@ -3,8 +3,20 @@
         <link rel="stylesheet" href="lib/leaflet.css"/>
      <script src="lib/leaflet.js"></script>
      <style>
+        label {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+        }
         #map { 
             height: 100%; width: 100%; 
+        }
+        #eshot-logo {
+            position: absolute;
+            height: 30px;
+            bottom: 50px;
+            left: 10px;
+            z-index: 1000;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         #controls {
             position: absolute;
@@ -20,6 +32,7 @@
             background-color: transparent;
             border: transparent;
             box-shadow: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-weight: normal;
             font-size: 12px;
         }
@@ -29,12 +42,17 @@
     <div id="map">
     </div>
     <div id="controls">
-        <input type="text" id="txtStopId"/>
+        <label for="txtStopId">Stop #</label>
+        <input type="text" id="txtStopId" size="5" onkeydown="txtStopId_keydown(this)"/>
         <input type="button" id="btnGetBusLocations" value="Get Bus Locations" onclick="btnGetBusLocations_click()"/>
+        <label id="lblStatus"></label>
     </div>
+    <img id="eshot-logo" src="images/eshot-logo.png" />
     <script type="text/javascript">
         const MIN_ZOOM = 6;
         const MAX_ZOOM = 18;
+        
+        var stopId = '';
 
         var busIcon = L.icon({
             iconUrl: 'images/yellow-circle.png', 
@@ -52,27 +70,39 @@
         }
 
         function btnGetBusLocations_click() {
-            var stopId = document.getElementById('txtStopId').value;
-            if (stopId == '') {
-                return;
-            } else {
-                getBusLocationsForStop(stopId);
+            stopId = document.getElementById('txtStopId').value;
+            getBusLocationsForStop(stopId);
+
+            setTimeout(() => {
+                btnGetBusLocations_click();
+            }, 10000);
+        }
+
+        function txtStopId_keydown(ele) {
+            if (event.key === 'Enter') {
+                btnGetBusLocations_click();
             }
         }
 
         function getBusLocationsForStop(stopId) {
+            if (stopId == '') return;
+            document.getElementById('lblStatus').innerText = 'Fetching...';
             fetch('https://openapi.izmir.bel.tr/api/iztek/duragayaklasanotobusler/' + stopId)
                 .then(response => response.json())
                 .then(data => cleanUp(data))
                 .then(data => {
+                    removeMarkers();
                     data.forEach(bus => {
+                        var aMarker = L.marker([bus.lat, bus.lon], { icon:busIcon});
+                        markers.push(aMarker);
                         var awayLabel = bus.KalanDurakSayisi == 0 ? 'arriving' : bus.KalanDurakSayisi + ' stops away';
                         var busNumber = "" + bus.HatNumarasi;
-                        L.marker([bus.lat, bus.lon], { icon:busIcon})
-                        .addTo(map)
-                        .bindTooltip(busNumber, {permanent: true, direction: 'center', className: "bus-label"})
-                        .bindPopup('[' + busNumber + '] ' + bus.HatAdi + ' ' + awayLabel);
+                        aMarker.addTo(map)
+                            .bindTooltip(busNumber, {permanent: true, direction: 'center', className: "bus-label"})
+                            .bindPopup('[' + busNumber + '] ' + bus.HatAdi + ' ' + awayLabel);
                     });
+                }).then(() =>{
+                    document.getElementById('lblStatus').innerText = '';
                 });
         }
         
@@ -82,6 +112,14 @@
             zoomControl: false
         }); 
 
+        var markers = new Array();
+        function removeMarkers() {
+            markers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            markers = new Array();
+        }        
+        
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: MAX_ZOOM,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
