@@ -38,7 +38,7 @@
         </style>     
     </head>
 <body>
-    <div id="map"><!--MAP CONTAINER--></div>
+    <div id="map"></div>
     
     <div id="controls">
         <label for="txtStopId">Stop #</label>
@@ -53,14 +53,12 @@
         const MIN_ZOOM = 6;
         const MAX_ZOOM = 18;
         
-        var stopId = '';
-
-        var busIcon = L.icon({
+        const busIcon = L.icon({
             iconUrl: 'images/yellow-circle.png', 
             iconSize: [40, 40], 
         });
 
-        function cleanUp(data) {
+        function cleanUpBusData(data) {
             data.forEach(bus => {
                 bus.lat = bus.KoorX.replace(',', '.');
                 bus.lon = bus.KoorY.replace(',', '.');
@@ -71,7 +69,7 @@
         }
 
         function btnGetBusLocations_click() {
-            stopId = document.getElementById('txtStopId').value;
+            var stopId = document.getElementById('txtStopId').value;
             getBusLocationsForStop(stopId);
 
             setTimeout(() => {
@@ -85,24 +83,31 @@
             }
         }
 
+        var markers = new Array();
+        function addBusMarkers(data) {
+            markers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            markers = new Array();
+            data.forEach(bus => {
+                var aMarker = L.marker([bus.lat, bus.lon], { icon:busIcon});
+                markers.push(aMarker);
+                var awayLabel = bus.KalanDurakSayisi == 0 ? 'arriving' : bus.KalanDurakSayisi + ' stops away';
+                var busNumber = "" + bus.HatNumarasi;
+                aMarker.addTo(map)
+                    .bindTooltip(busNumber, {permanent: true, direction: 'center', className: "bus-label"})
+                    .bindPopup('[' + busNumber + '] ' + bus.HatAdi + ' ' + awayLabel);
+            });
+        }
+
         function getBusLocationsForStop(stopId) {
             if (stopId == '') return;
             document.getElementById('lblStatus').innerText = 'Fetching...';
             fetch('https://openapi.izmir.bel.tr/api/iztek/duragayaklasanotobusler/' + stopId)
                 .then(response => response.json())
-                .then(data => cleanUp(data))
-                .then(data => {
-                    removeMarkers();
-                    data.forEach(bus => {
-                        var aMarker = L.marker([bus.lat, bus.lon], { icon:busIcon});
-                        markers.push(aMarker);
-                        var awayLabel = bus.KalanDurakSayisi == 0 ? 'arriving' : bus.KalanDurakSayisi + ' stops away';
-                        var busNumber = "" + bus.HatNumarasi;
-                        aMarker.addTo(map)
-                            .bindTooltip(busNumber, {permanent: true, direction: 'center', className: "bus-label"})
-                            .bindPopup('[' + busNumber + '] ' + bus.HatAdi + ' ' + awayLabel);
-                    });
-                }).then(() =>{
+                .then(data => cleanUpBusData(data))
+                .then(data => addBusMarkers(data))
+                .then(() =>{
                     document.getElementById('lblStatus').innerText = '';
                 });
         }
@@ -112,14 +117,6 @@
             maxZoom: MAX_ZOOM,
             zoomControl: false
         }); 
-
-        var markers = new Array();
-        function removeMarkers() {
-            markers.forEach(marker => {
-                map.removeLayer(marker);
-            });
-            markers = new Array();
-        }        
         
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: MAX_ZOOM,
