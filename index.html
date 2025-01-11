@@ -1,53 +1,54 @@
-<html>
+<!DOCTYPE html>
     <head>
         <link rel="stylesheet" href="lib/leaflet.css"/>
-     <script src="lib/leaflet.js"></script>
-     <style>
-        label {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 14px;
-        }
-        #map { 
-            height: 100%; width: 100%; 
-        }
-        #eshot-logo {
-            position: absolute;
-            height: 30px;
-            bottom: 50px;
-            left: 10px;
-            z-index: 1000;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        #controls {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            z-index: 1000;
-            background-color: rgb(165, 209, 209);
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .leaflet-tooltip.bus-label {
-            background-color: transparent;
-            border: transparent;
-            box-shadow: none;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: normal;
-            font-size: 12px;
-        }
-    </style>     
+        <script src="lib/leaflet.js"></script>
+        <style>
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                font-size: 12pt;
+            }
+            
+            #eshot-logo {
+                position: absolute;
+                height: 30px;
+                bottom: 60px;
+                left: 10px;
+                z-index: 1000;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+
+            #controls {
+                position: absolute;
+                bottom: 10px;
+                left: 10px;
+                z-index: 1000;
+                background-color: rgb(165, 209, 209);
+                padding: 10px;
+                border-radius: 5px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+
+            .leaflet-tooltip.bus-label {
+                background-color: transparent;
+                border: transparent;
+                box-shadow: none;
+            }
+            
+        </style>     
     </head>
 <body>
-    <div id="map">
-    </div>
+    <div id="map"><!--MAP CONTAINER--></div>
+    
     <div id="controls">
         <label for="txtStopId">Stop #</label>
         <input type="text" id="txtStopId" size="5" onkeydown="txtStopId_keydown(this)"/>
         <input type="button" id="btnGetBusLocations" value="Get Bus Locations" onclick="btnGetBusLocations_click()"/>
         <label id="lblStatus"></label>
     </div>
+
     <img id="eshot-logo" src="images/eshot-logo.png" />
+    
     <script type="text/javascript">
         const MIN_ZOOM = 6;
         const MAX_ZOOM = 18;
