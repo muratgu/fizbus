@@ -1,5 +1,7 @@
 <!DOCTYPE html>
     <head>
+        <link rel="stylesheet" href="lib/leaflet.css"/>
+        <script src="lib/leaflet.js"></script>
         <style>
 
             body {
@@ -7,48 +9,55 @@
                 font-size: 12pt;
             }
             
-            input[type="text"] {
-                padding: 5px;
-                font-size: 12pt;
-            }
-
-            input[type="button"] {
-                padding: 5px;
-                font-size: 12pt;
-                cursor: pointer;
-            }
-
             #eshot-logo {
                 position: absolute;
-                padding-left: 10px;
-                top:27px;
-                height: 20px;
-            }            
+                height: 30px;
+                bottom: 60px;
+                left: 10px;
+                z-index: 1000;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
 
             #controls {
+                position: absolute;
+                bottom: 10px;
+                left: 10px;
+                z-index: 1000;
                 background-color: rgb(165, 209, 209);
                 padding: 10px;
                 border-radius: 5px;
                 box-shadow: 0 0 10px rgba(0,0,0,0.1);
             }
 
+            .leaflet-tooltip.bus-label {
+                background-color: transparent;
+                border: transparent;
+                box-shadow: none;
+            }
+            
         </style>     
     </head>
 <body>
+    <div id="map"></div>
+    
     <div id="controls">
         <label for="txtStopId">Stop #</label>
         <input type="text" id="txtStopId" size="5" onkeydown="txtStopId_keydown(this)"/>
         <input type="button" id="btnGetBusLocations" value="Get Bus Locations" onclick="btnGetBusLocations_click()"/>
-        <img id="eshot-logo" src="images/eshot-logo.png" />
-        
+        <label id="lblStatus"></label>
     </div>
 
-    <label id="lblStatus"></label>
-
-    <div id="schedule"><ul id="schedule-ul"></ul></div>
-
-    <script type="text/javascript">
+    <img id="eshot-logo" src="images/eshot-logo.png" />
     
+    <script type="text/javascript">
+        const MIN_ZOOM = 6;
+        const MAX_ZOOM = 18;
+        
+        const busIcon = L.icon({
+            iconUrl: 'images/yellow-circle.png', 
+            iconSize: [40, 40], 
+        });
+
         function cleanUpBusData(data) {
             data.forEach(bus => {
                 bus.lat = bus.KoorX.replace(',', '.');
@@ -76,14 +85,18 @@
 
         var markers = new Array();
         function addBusMarkers(data) {
-            var schedule_ul = document.getElementById('schedule-ul');
-            schedule_ul.innerHTML = '';
+            markers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            markers = new Array();
             data.forEach(bus => {
+                var aMarker = L.marker([bus.lat, bus.lon], { icon:busIcon});
+                markers.push(aMarker);
                 var awayLabel = bus.KalanDurakSayisi == 0 ? 'arriving' : bus.KalanDurakSayisi + ' stops away';
                 var busNumber = "" + bus.HatNumarasi;
-                var row = document.createElement('li');
-                row.innerText = '[' + busNumber + '] ' + bus.HatAdi + ' ' + awayLabel;
-                schedule_ul.appendChild(row);
+                aMarker.addTo(map)
+                    .bindTooltip(busNumber, {permanent: true, direction: 'center', className: "bus-label"})
+                    .bindPopup('[' + busNumber + '] ' + bus.HatAdi + ' ' + awayLabel);
             });
         }
 
@@ -99,6 +112,37 @@
                 });
         }
         
+        var map = L.map('map', {
+            minZoom: MIN_ZOOM,
+            maxZoom: MAX_ZOOM,
+            zoomControl: false
+        }); 
+        
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: MAX_ZOOM,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        L.control.zoom({
+            position: 'bottomright'
+        }).addTo(map);
+
+        map.on('locationfound', (e) => {
+            var radius = e.accuracy / 2;
+            L.circle(e.latlng, radius).addTo(map);
+        });
+
+        map.on('locationerror', (e) => {
+            console.log(e);
+            alert(e.message);
+        });
+
+        map.locate({setView: true, maxZoom: MAX_ZOOM})
+
+        map.on('load', () => {
+            console.log('Map loaded');
+        });
+
      </script>
 </body>
 </html>
