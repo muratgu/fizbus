@@ -67,14 +67,19 @@
             });
             return data;
         }
-
+        
         function btnGetBusLocations_click() {
             var stopId = document.getElementById('txtStopId').value;
-            getBusLocationsForStop(stopId);
+            if (stopId == '') return; 
 
-            setTimeout(() => {
-                btnGetBusLocations_click();
-            }, 10000);
+            document.getElementById('lblStatus').innerText = 'Fetching...';
+
+            eshot.getBusLocationsForStop(stopId, function(data) {
+                addBusMarkers(data);
+                document.getElementById('lblStatus').innerText = 'Last updated: ' + new Date().toLocaleTimeString();
+            }, function(e){
+                document.getElementById('lblStatus').innerText = 'Error: ' + e.Message;
+            });
         }
 
         function txtStopId_keydown(ele) {
@@ -100,18 +105,6 @@
             });
         }
 
-        function getBusLocationsForStop(stopId) {
-            if (stopId == '') return;
-            document.getElementById('lblStatus').innerText = 'Fetching...';
-            fetch('https://openapi.izmir.bel.tr/api/iztek/duragayaklasanotobusler/' + stopId)
-                .then(response => response.json())
-                .then(data => cleanUpBusData(data))
-                .then(data => addBusMarkers(data))
-                .then(() =>{
-                    document.getElementById('lblStatus').innerText = '';
-                });
-        }
-        
         var map = L.map('map', {
             minZoom: MIN_ZOOM,
             maxZoom: MAX_ZOOM,

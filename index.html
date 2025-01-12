@@ -1,5 +1,6 @@
 <!DOCTYPE html>
     <head>
+        <script src="lib/eshot.js"></script>
         <style>
 
             body {
@@ -45,33 +46,53 @@
 
     <label id="lblStatus"></label>
 
-    <div id="schedule"><ul id="schedule-ul"></ul></div>
+    <div id="schedule"><table id="schedule-ul"></table></div>
 
     <script type="text/javascript">
-    
-        function cleanUpBusData(data) {
-            data.forEach(bus => {
-                bus.lat = bus.KoorX.replace(',', '.');
-                bus.lon = bus.KoorY.replace(',', '.');
-                delete bus.KoorX;
-                delete bus.KoorY;
-            });
-            return data;
-        }
+
+        var timeoutId = null;
 
         function btnGetBusLocations_click() {
-            var stopId = document.getElementById('txtStopId').value;
-            getBusLocationsForStop(stopId);
+            var lblStatus = document.getElementById('lblStatus');
+            var txtStopId = document.getElementById('txtStopId');
 
-            setTimeout(() => {
-                btnGetBusLocations_click();
-            }, 10000);
+            if (!lblStatus.innerText.startsWith('Last')) { 
+                lblStatus.innerText = '';
+            } else {
+                if (txtStopId.value == '' && !lblStatus.innerText.endsWith('(paused)')) {
+                    lblStatus.innerText = lblStatus.innerText + ' (paused)';                    
+                }    
+            }
+
+            if (txtStopId.value == '') return; 
+
+            lblStatus.innerText = 'Fetching...';
+
+            EshotService.getBusLocationsForStop(txtStopId.value, function(data) {
+                addBusMarkers(data);
+                lblStatus.innerText = 'Last updated: ' + new Date().toLocaleTimeString();
+                
+                if (timeoutId != null) clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    btnGetBusLocations_click();
+                }, 20000);
+            }, function(e){
+                console.error("Exception thrown", e);
+                lblStatus.innerText = e;
+            });
+            
         }
 
         function txtStopId_keydown(ele) {
             if (event.key === 'Enter') {
                 btnGetBusLocations_click();
             }
+        }
+
+        function addTableData(row, text){
+            var td = document.createElement('td');
+            td.innerText = text;
+            row.appendChild(td);
         }
 
         var markers = new Array();
@@ -81,22 +102,12 @@
             data.forEach(bus => {
                 var awayLabel = bus.KalanDurakSayisi == 0 ? 'arriving' : bus.KalanDurakSayisi + ' stops away';
                 var busNumber = "" + bus.HatNumarasi;
-                var row = document.createElement('li');
-                row.innerText = '[' + busNumber + '] ' + bus.HatAdi + ' ' + awayLabel;
+                var row = document.createElement('tr');
+                addTableData(row, busNumber);
+                addTableData(row, bus.HatAdi);
+                addTableData(row, awayLabel);
                 schedule_ul.appendChild(row);
             });
-        }
-
-        function getBusLocationsForStop(stopId) {
-            if (stopId == '') return;
-            document.getElementById('lblStatus').innerText = 'Fetching...';
-            fetch('https://openapi.izmir.bel.tr/api/iztek/duragayaklasanotobusler/' + stopId)
-                .then(response => response.json())
-                .then(data => cleanUpBusData(data))
-                .then(data => addBusMarkers(data))
-                .then(() =>{
-                    document.getElementById('lblStatus').innerText = '';
-                });
         }
         
      </script>
