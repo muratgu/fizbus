@@ -108,12 +108,14 @@
         var map = L.map('map', {
             minZoom: MIN_ZOOM,
             maxZoom: MAX_ZOOM,
-            zoomControl: false
+            zoomControl: true
         }); 
         
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        var openStreetMapUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+        L.tileLayer(openStreetMapUrl, {
             maxZoom: MAX_ZOOM,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            attribution: '&copy; <a href="http://www.mapbox.com/copyright">MapBox</a>'
         }).addTo(map);
 
         L.control.zoom({
