@@ -1,0 +1,33 @@
+/* eshot.css */
+
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 12pt;
+}
+
+input[type="text"] {
+    padding: 5px;
+    font-size: 12pt;
+}
+
+input[type="button"] {
+    padding: 5px;
+    font-size: 12pt;
+    cursor: pointer;
+}
+
+#eshot-logo {
+    position: absolute;
+    padding-left: 10px;
+    top:27px;
+    height: 20px;
+}            
+
+#controls {
+    background-color: rgb(165, 209, 209);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
