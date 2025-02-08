@@ -17,6 +17,24 @@
 
     <script type="text/javascript">
 
+        function loadUrlParams() {
+            const params = new URLSearchParams(document.location.search);
+            const stopid = params.get("stopid");
+            if (stopid && stopid.startsWith('500') && stopid.length < 6) {
+                document.getElementById('txtStopId').value = stopid;
+            }
+        }
+
+        function saveUrlParam(name, value) {
+            const params = new URLSearchParams(document.location.search);
+            params.set(name, value);
+            origin = window.location.origin;
+            origin = (origin !== 'null') || 'file://';
+            url = origin + window.location.pathname + '?' + params.toString();
+            console.log(window.location);
+            history.pushState(history.state, document.title, url);
+        }
+
         var timeoutId = null;
 
         function btnGetBusLocations_click() {
@@ -43,11 +61,15 @@
                 timeoutId = setTimeout(() => {
                     btnGetBusLocations_click();
                 }, 20000);
+
+                if (txtStopId.value && txtStopId.value.startsWith('500') && txtStopId.value.length < 6) {
+                    saveUrlParam('stopid', txtStopId.value);                
+                }
+
             }, function(e){
                 console.error("Exception thrown", e);
                 lblStatus.innerText = e;
-            });
-            
+            });            
         }
 
         function txtStopId_keydown(ele) {
@@ -75,6 +97,8 @@
                 schedule_ul.appendChild(row);
             });
         }
+
+        loadUrlParams();
         
      </script>
 </body>
