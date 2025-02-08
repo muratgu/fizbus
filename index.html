@@ -17,9 +17,11 @@
 
     <div id="schedule"><table id="schedule-ul"></table></div>
 
-    <a href="#" id="lnkShare">Share</a>
-    <div id="shares">
-        <div id="qrcode"></div>
+    <div id="share">
+        <a href="#" id="lnkShare">Share</a>
+        <div id="shares">
+            <div id="qrcode"></div>
+        </div>
     </div>
     
     <script type="text/javascript">
@@ -46,9 +48,10 @@
             const params = new URLSearchParams(document.location.search);
             params.set(name, value);
             origin = window.location.origin;
-            origin = (origin !== 'null') || 'file://';
             url = origin + window.location.pathname + '?' + params.toString();
-            console.log(window.location);
+            if (origin == 'null') {
+                url = window.location.pathname + '?' + params.toString();
+            }
             history.pushState(history.state, document.title, url);
             showShare();
         }

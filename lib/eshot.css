@@ -3,6 +3,9 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 12pt;
+    margin:0 auto;
+    max-width: 400px;
+    padding: 8px;
 }
 
 input[type="text"] {
@@ -16,9 +19,10 @@ input[type="button"] {
 
 #eshot-logo {
     position: absolute;
-    padding-left: 10px;
-    top: 27px;
-    height: 20px;
+    padding-left: 5px;
+    margin: auto;
+    height: 25px;
+    padding-top: 5px;
 }            
 
 #controls {
@@ -31,4 +35,11 @@ input[type="button"] {
 #lnkShare {
     padding-top: 50px;
     display: none;
+    padding-left:35px;
+    padding-bottom: 20px;
+}
+
+#share {
+    margin: 0 auto;
+    width:128px;
 }
