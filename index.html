@@ -1,6 +1,7 @@
 <!DOCTYPE html>
     <head>
         <script src="lib/eshot.js"></script>
+        <script src="lib/qrcode.min.js"></script>
         <link rel="stylesheet" href="lib/eshot.css"/>
     </head>
 <body>
@@ -15,6 +16,11 @@
 
     <div id="schedule"><table id="schedule-ul"></table></div>
 
+    <a href="#" id="lnkShare">Share</a>
+    <div id="shares">
+        <div id="qrcode"></div>
+    </div>
+    
     <script type="text/javascript">
 
         function loadUrlParams() {
@@ -25,6 +31,16 @@
             }
         }
 
+        var qrcode;
+        function generateQRCode(url){
+            qrcode = qrcode || new QRCode(document.getElementById("qrcode"), {
+                width: 128,
+                height: 128,
+            });
+            qrcode.clear(); 
+            qrcode.makeCode(url);
+        }
+
         function saveUrlParam(name, value) {
             const params = new URLSearchParams(document.location.search);
             params.set(name, value);
@@ -33,6 +49,19 @@
             url = origin + window.location.pathname + '?' + params.toString();
             console.log(window.location);
             history.pushState(history.state, document.title, url);
+            showShare();
+        }
+
+        function showShare() {
+            document.getElementById('lnkShare').style.display = "block";
+        }
+
+        function showShares() {
+            document.getElementById('shares').style.display = "block";
+        }
+
+        function hideShares() {
+            document.getElementById('shares').style.display = "none";
         }
 
         var timeoutId = null;
@@ -64,6 +93,8 @@
 
                 if (txtStopId.value && txtStopId.value.startsWith('500') && txtStopId.value.length < 6) {
                     saveUrlParam('stopid', txtStopId.value);                
+                    hideShares();
+                    showShare();
                 }
 
             }, function(e){
@@ -99,6 +130,11 @@
         }
 
         loadUrlParams();
+
+        document.getElementById('lnkShare').addEventListener('click', function() {
+            generateQRCode(url);
+            showShares();
+        });
         
      </script>
 </body>
