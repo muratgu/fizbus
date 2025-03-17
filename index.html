@@ -7,9 +7,9 @@
     </head>
 <body>
     <div id="controls">
-        <label for="txtStopId">Stop #</label>
+        <label for="txtStopId">Durak</label>
         <input type="text" id="txtStopId" size="5" onkeydown="txtStopId_keydown(this)"/>
-        <input type="button" id="btnGetBusLocations" value="Get Bus Locations" onclick="btnGetBusLocations_click()"/>
+        <input type="button" id="btnGetBusLocations" value="Gelen Otobüsler" onclick="btnGetBusLocations_click()"/>
         <img id="eshot-logo" src="images/eshot-logo.png" />
     </div>
 
@@ -18,7 +18,7 @@
     <div id="schedule"><table id="schedule-ul"></table></div>
 
     <div id="share">
-        <a href="#" id="lnkShare">Share</a>
+        <a href="#" id="lnkShare">Paylaş</a>
         <div id="shares">
             <div id="qrcode"></div>
         </div>
@@ -74,21 +74,21 @@
             var lblStatus = document.getElementById('lblStatus');
             var txtStopId = document.getElementById('txtStopId');
 
-            if (!lblStatus.innerText.startsWith('Last')) { 
+            if (!lblStatus.innerText.startsWith('Son ')) { 
                 lblStatus.innerText = '';
             } else {
-                if (txtStopId.value == '' && !lblStatus.innerText.endsWith('(paused)')) {
-                    lblStatus.innerText = lblStatus.innerText + ' (paused)';                    
+                if (txtStopId.value == '' && !lblStatus.innerText.endsWith('(beklemede)')) {
+                    lblStatus.innerText = lblStatus.innerText + ' (beklemede)';                    
                 }    
             }
 
             if (txtStopId.value == '') return; 
 
-            lblStatus.innerText = 'Fetching...';
+            lblStatus.innerText = 'Bağlanıyor...';
 
             EshotService.getBusLocationsForStop(txtStopId.value, function(data) {
                 updateBusLocations(data);
-                lblStatus.innerText = 'Last updated: ' + new Date().toLocaleTimeString();
+                lblStatus.innerText = 'Son güncelleme: ' + new Date().toLocaleTimeString();
                 
                 if (timeoutId != null) clearTimeout(timeoutId);
                 timeoutId = setTimeout(() => {
@@ -102,8 +102,12 @@
                 }
 
             }, function(e){
-                console.error("Exception thrown", e);
-                lblStatus.innerText = e;
+                console.log(e);
+                if (e.toString().startsWith('TypeError: NetworkError')){
+                    lblStatus.innerText = 'Bağlantı kurulamadı';
+                }else{
+                    lblStatus.innerText = e;
+                }
             });            
         }
 
@@ -139,7 +143,7 @@
             generateQRCode(url);
             showShares();
         });
-        
      </script>
+
 </body>
 </html>
