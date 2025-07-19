@@ -127,7 +127,7 @@
             var schedule_ul = document.getElementById('schedule-ul');
             schedule_ul.innerHTML = '';
             data.forEach(bus => {
-                var awayLabel = bus.KalanDurakSayisi == 0 ? 'geliyor' : bus.KalanDurakSayisi + ' durak uzakta';
+                var awayLabel = bus.KalanDurakSayisi == 0 ? 'geliyor' : bus.KalanDurakSayisi + ' durak';
                 var busNumber = "" + bus.HatNumarasi;
                 var row = document.createElement('tr');
                 addTableData(row, busNumber);
